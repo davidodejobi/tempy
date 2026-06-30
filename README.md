@@ -35,10 +35,14 @@ Claude: creates inbox → fills form → polls for email → extracts link → v
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `TEMPY_PORT` | `3000` | Web UI port |
+| `TEMPY_DATA_DIR` | `~/.tempy` | Directory for the persisted inbox store |
 
 ## Notes
 
-- Inboxes are lost when the process restarts (in-memory only)
+- Inboxes are **persisted** to `~/.tempy/inboxes.json` and survive restarts. Delete that file to wipe all inboxes.
+- The store file contains each inbox's mail.tm **password in plaintext** — it's a localhost testing tool, not a secrets vault. Don't use these inboxes for anything sensitive.
+- mail.tm tokens expire; Tempy re-authenticates automatically using the stored password.
+- HTML emails render inside a sandboxed iframe (no script execution). Use the HTML/Text toggle to switch views.
 - mail.tm addresses are semi-public — for testing only, not production secrets
 
 ## License

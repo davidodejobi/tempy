@@ -74,8 +74,7 @@ function renderStatus() {
   const panel = document.getElementById("status-panel");
   const quota = document.getElementById("quota-panel");
   panel.innerHTML = "";
-  quota.innerHTML = "";
-  if (!selectedInboxId) return;
+  if (!selectedInboxId) { quota.innerHTML = ""; return; }
 
   const statusRow = document.createElement("div"); statusRow.className = "row";
   const dot = document.createElement("span"); dot.className = "dot";
@@ -120,7 +119,7 @@ async function loadQuota() {
     const fill = document.createElement("span");
     fill.style.width = `${Math.min(100, (q.used / q.quota) * 100)}%`;
     bar.appendChild(fill);
-    quota.append(label, bar);
+    quota.replaceChildren(label, bar);
   } catch { /* quota unavailable */ }
 }
 

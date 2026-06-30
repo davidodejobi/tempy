@@ -56,9 +56,8 @@ async function loadInboxes() {
     inboxes.forEach((inbox) => {
       const el = document.createElement("div");
       el.className = "inbox-item" + (inbox.id === selectedInboxId ? " active" : "");
-      const ico = document.createElement("span"); ico.className = "ico"; ico.textContent = "✉";
       const addr = document.createElement("span"); addr.className = "addr"; addr.textContent = inbox.address;
-      el.append(ico, addr);
+      el.append(addr);
       if (inbox.unreadCount > 0) {
         const badge = document.createElement("span"); badge.className = "badge"; badge.textContent = inbox.unreadCount;
         el.appendChild(badge);

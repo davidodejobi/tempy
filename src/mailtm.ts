@@ -6,6 +6,7 @@ export interface MailTmInbox {
   id: string;
   address: string;
   token: string;
+  password: string;
 }
 
 export interface MailTmMessage {
@@ -36,6 +37,10 @@ function randomString(length: number): string {
   return out;
 }
 
+function authError(status: number, fallback: string): Error {
+  return new Error(status === 401 ? "401 Unauthorized" : fallback);
+}
+
 export async function createMailTmInbox(): Promise<MailTmInbox> {
   const domainsRes = await fetch(`${BASE_URL}/domains?page=1`);
   if (!domainsRes.ok) throw new Error("Failed to fetch domains");
@@ -61,14 +66,14 @@ export async function createMailTmInbox(): Promise<MailTmInbox> {
   if (!tokenRes.ok) throw new Error("Failed to get token");
   const tokenData = await tokenRes.json() as { token: string };
 
-  return { id: account.id, address, token: tokenData.token };
+  return { id: account.id, address, token: tokenData.token, password };
 }
 
 export async function fetchMessages(token: string): Promise<MailTmMessage[]> {
   const res = await fetch(`${BASE_URL}/messages?page=1`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) throw new Error("Failed to fetch messages");
+  if (!res.ok) throw authError(res.status, "Failed to fetch messages");
   const data = await res.json() as { "hydra:member": MailTmMessage[] };
   return data["hydra:member"];
 }
@@ -77,8 +82,37 @@ export async function fetchMessage(token: string, messageId: string): Promise<Ma
   const res = await fetch(`${BASE_URL}/messages/${messageId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) throw new Error(`Failed to fetch message ${messageId}`);
+  if (!res.ok) throw authError(res.status, `Failed to fetch message ${messageId}`);
   return res.json() as Promise<MailTmMessageDetail>;
+}
+
+export async function loginMailTm(address: string, password: string): Promise<string> {
+  const res = await fetch(`${BASE_URL}/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ address, password }),
+  });
+  if (!res.ok) throw authError(res.status, "Failed to log in");
+  const data = await res.json() as { token: string };
+  return data.token;
+}
+
+export async function fetchAccount(token: string): Promise<{ used: number; quota: number }> {
+  const res = await fetch(`${BASE_URL}/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw authError(res.status, "Failed to fetch account");
+  const data = await res.json() as { used: number; quota: number };
+  return { used: data.used, quota: data.quota };
+}
+
+export async function markSeen(token: string, messageId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/messages/${messageId}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/merge-patch+json" },
+    body: JSON.stringify({ seen: true }),
+  });
+  if (!res.ok) throw authError(res.status, "Failed to mark message seen");
 }
 
 export async function deleteMailTmAccount(token: string, accountId: string): Promise<void> {

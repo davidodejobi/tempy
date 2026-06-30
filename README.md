@@ -11,6 +11,14 @@ What you get:
 - Inboxes that survive a restart. They're saved to a file in your home folder.
 - Readable addresses like `lekki-anchor42@...`, not random junk.
 
+## Quickest setup: let your agent do it
+
+If you already use an AI coding agent (Claude Code, opencode, Gemini CLI), you don't have to run the manual steps below. Paste this and let it install Tempy for you:
+
+> Set up the Tempy MCP server for me. Clone https://github.com/davidodejobi/tempy, run `npm install` then `npm run build` inside it, and register the built `dist/index.js` as an MCP server named `tempy` at user scope so every project can use it. When you're done, confirm it's connected and create one test inbox so I know it works.
+
+It clones, builds, wires up the config, and proves the connection in one pass. If you'd rather do it by hand, or you're on Claude Desktop, keep reading.
+
 ## Before you start
 
 You need Node.js 18 or newer. Check with:
@@ -25,9 +33,17 @@ You also need Claude Code or Claude Desktop, depending on how you want to use it
 
 ## Get it running
 
-Tempy isn't on npm yet, so for now you build it from source. The `npx` shortcut is here too, for when it's published.
+The easy way is npx. Nothing to clone, nothing to build, npm fetches Tempy and runs it:
 
-### Build from source (this works today)
+```bash
+npx -y tempy-mcp
+```
+
+You'll see `tempy UI → http://localhost:3000` and it will sit there waiting for a client to connect. Most of the time you won't run this by hand, your MCP client starts it for you (next section). This is just to prove it works.
+
+### Build from source (only if you want to change the code)
+
+If you'd rather hack on Tempy, clone and build it:
 
 ```bash
 git clone https://github.com/davidodejobi/tempy.git
@@ -36,34 +52,26 @@ npm install
 npm run build
 ```
 
-That creates `dist/index.js`. That file is the server. You'll need its full path in a second, so print it now and copy what it shows:
+That creates `dist/index.js`, which is the server. Print its full path so you can point a client at it:
 
 ```bash
 echo "$(pwd)/dist/index.js"
 ```
 
-### Or use npx (once it's published)
-
-```bash
-npx tempy-mcp
-```
-
-Nothing to clone or build. npm grabs it and runs it.
-
 ## Hook it up to Claude
 
 ### Claude Code
 
-Tell Claude Code where the server is, using the path you just copied. The `--scope user` part makes Tempy available in every project instead of just one:
-
-```bash
-claude mcp add tempy --scope user -- node /paste/your/path/to/dist/index.js
-```
-
-Once it's published you can skip the path:
+One command. The `--scope user` part makes Tempy available in every project, not just the current one:
 
 ```bash
 claude mcp add tempy --scope user -- npx -y tempy-mcp
+```
+
+Built it from source instead? Point Claude at your file rather than npx:
+
+```bash
+claude mcp add tempy --scope user -- node /paste/your/path/to/dist/index.js
 ```
 
 Now open a new Claude Code session and run `/mcp`. You should see tempy in the list, connected, with its tools under it. That's it.
@@ -77,20 +85,7 @@ Open the config file for your system:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
-Add Tempy under `mcpServers`. From source:
-
-```json
-{
-  "mcpServers": {
-    "tempy": {
-      "command": "node",
-      "args": ["/paste/your/path/to/dist/index.js"]
-    }
-  }
-}
-```
-
-Once it's published:
+Add Tempy under `mcpServers`:
 
 ```json
 {
@@ -103,7 +98,88 @@ Once it's published:
 }
 ```
 
+Built it from source? Use `node` and the path to your file instead:
+
+```json
+{
+  "mcpServers": {
+    "tempy": {
+      "command": "node",
+      "args": ["/paste/your/path/to/dist/index.js"]
+    }
+  }
+}
+```
+
 Quit Claude Desktop completely, then open it again. Tempy's tools show up in the tools menu.
+
+## Other MCP clients
+
+Tempy talks over stdio, so anything that speaks MCP can run it. The configs below all use npx, so no clone needed. If you built from source, swap `npx -y tempy-mcp` for `node /paste/your/path/to/dist/index.js`. Only the config file and its syntax change.
+
+One thing to know first. Each client starts its own copy of Tempy, and every copy wants the web page on port 3000. The first one to start gets it. If the port is already taken, that copy quietly skips the web page and the tools keep working. To give each client its own dashboard, set a different `TEMPY_PORT` per client, as below.
+
+### opencode
+
+In `~/.config/opencode/opencode.json`, under `mcp`:
+
+```json
+{
+  "mcp": {
+    "tempy": {
+      "type": "local",
+      "command": ["npx", "-y", "tempy-mcp"],
+      "enabled": true,
+      "environment": { "TEMPY_PORT": "3001" }
+    }
+  }
+}
+```
+
+### Gemini CLI
+
+In `~/.gemini/settings.json`, add a top-level `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "tempy": {
+      "command": "npx",
+      "args": ["-y", "tempy-mcp"],
+      "env": { "TEMPY_PORT": "3002" }
+    }
+  }
+}
+```
+
+### Codex CLI
+
+In `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.tempy]
+command = "npx"
+args = ["-y", "tempy-mcp"]
+env = { TEMPY_PORT = "3003" }
+```
+
+### Antigravity
+
+Antigravity adds MCP servers through its settings, using the same shape as Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "tempy": {
+      "command": "npx",
+      "args": ["-y", "tempy-mcp"],
+      "env": { "TEMPY_PORT": "3004" }
+    }
+  }
+}
+```
+
+After editing any of these, restart the client. Most list connected MCP servers under `/mcp`.
 
 ## Using it
 
@@ -134,21 +210,34 @@ The six tools, plainly:
 
 ## The web page
 
-The same process also serves a dashboard. While the server is running, open:
+The same process serves a dashboard. While the server is running, open:
 
 ```
 http://localhost:3000
 ```
 
-You can make addresses, copy them, read mail, and delete inboxes there. It's the same data Claude sees, so an inbox you make in chat shows up in the browser, and the other way around. HTML emails render inside a locked-down iframe, so nothing in them can run. There's a toggle to switch between the HTML and plain-text view.
+This is your window into the inboxes, and it works two ways:
+
+- **Watch the AI work.** When Claude makes an inbox and a verification email lands in it, you see it happen. The page refreshes every few seconds, so mail shows up on its own without you reloading. Handy when you're testing a flow and want to confirm the AI actually got the email it claims it got.
+- **Do it yourself.** Make addresses, copy them, read mail, and delete inboxes right from the page, no AI involved. Grab an address, paste it into whatever you're testing by hand, and watch the message arrive.
+
+Either way it's the same data. An inbox Claude makes in chat shows up in the browser, and an address you create in the browser is one Claude can read. HTML emails render inside a locked-down iframe, so nothing in them can run, and there's a toggle to switch between the HTML and plain-text view.
+
+Running Tempy in more than one app at once? Each app gets its own dashboard:
+
+- Claude → `localhost:3000`
+- opencode → `localhost:3001`
+- and so on (full list of ports further down)
+
+Open the page for the app you want to watch. If you only use Tempy in one place, none of this matters.
 
 If Claude is connected, the server is already up. To run it on its own:
 
 ```bash
-npm start
+npx -y tempy-mcp
 ```
 
-Or point node straight at the built file:
+From source, use `npm start`, or point node straight at the built file:
 
 ```bash
 node /paste/your/path/to/dist/index.js
@@ -184,4 +273,4 @@ Change the code, rebuild, then restart your Claude session so it picks up the ne
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE) for the full text.

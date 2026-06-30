@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, existsSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { loadInboxes, saveInboxes, defaultStorePath } from "./persistence.js";
@@ -31,6 +31,11 @@ describe("saveInboxes / loadInboxes", () => {
     const nested = path.join(dir, "sub", "inboxes.json");
     saveInboxes(nested, [sample]);
     expect(loadInboxes(nested)).toEqual([sample]);
+  });
+
+  it("writes the store file owner-only (0o600)", () => {
+    saveInboxes(file, [sample]);
+    expect(statSync(file).mode & 0o777).toBe(0o600);
   });
 });
 

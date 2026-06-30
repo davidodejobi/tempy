@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, mkdirSync, renameSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, renameSync, chmodSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import type { StoredInbox } from "./inbox-store.js";
@@ -22,8 +22,10 @@ export function loadInboxes(storePath: string): StoredInbox[] {
 }
 
 export function saveInboxes(storePath: string, inboxes: StoredInbox[]): void {
-  mkdirSync(path.dirname(storePath), { recursive: true });
+  // The store holds plaintext mail.tm passwords — keep it owner-only.
+  mkdirSync(path.dirname(storePath), { recursive: true, mode: 0o700 });
   const tmp = `${storePath}.tmp`;
-  writeFileSync(tmp, JSON.stringify({ version: FILE_VERSION, inboxes }, null, 2), "utf8");
+  writeFileSync(tmp, JSON.stringify({ version: FILE_VERSION, inboxes }, null, 2), { encoding: "utf8", mode: 0o600 });
+  chmodSync(tmp, 0o600); // enforce 0o600 even if the tmp file pre-existed with looser perms
   renameSync(tmp, storePath);
 }

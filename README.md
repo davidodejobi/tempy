@@ -1,28 +1,49 @@
 # Tempy
 
-Disposable email inboxes for AI agents and humans — an [MCP](https://modelcontextprotocol.io) server backed by [mail.tm](https://mail.tm), with a built-in web UI.
+Throwaway email addresses you can create and read from Claude, or from a small web page on your own machine. It's an [MCP](https://modelcontextprotocol.io) server that talks to [mail.tm](https://mail.tm).
 
-Create throwaway email addresses on demand, read the messages they receive, and delete them when you're done — all from Claude (or any MCP client), or from a local browser dashboard. Handy for signing up to things you don't want in your real inbox, testing email flows, and grabbing one-time verification codes.
+Use it when you want an email address you don't care about. Signing up for something you don't trust, testing your own signup flow, grabbing a one-time verification code. Make an address, read what lands in it, throw it away.
 
-- **6 MCP tools** — create inboxes, list them, read messages, delete messages or whole inboxes
-- **Web UI** — a three-pane mail client at `http://localhost:3000`
-- **Persistent** — inboxes survive restarts (stored locally in `~/.tempy/inboxes.json`)
-- **Readable addresses** — names like `lekki-anchor42@…` instead of random gibberish
+What you get:
 
----
+- Six tools Claude can call: make an inbox, list inboxes, read messages, delete a message, delete an inbox.
+- A web dashboard at `http://localhost:3000` that looks like a normal mail client.
+- Inboxes that survive a restart. They're saved to a file in your home folder.
+- Readable addresses like `lekki-anchor42@...`, not random junk.
 
-## Requirements
+## Quickest setup: let your agent do it
 
-- **Node.js 18 or newer** (`node --version` to check — needs the built-in `fetch`)
-- For the Claude integration: [Claude Code](https://claude.com/claude-code) or Claude Desktop
+If you already use an AI coding agent (Claude Code, opencode, Gemini CLI), you don't have to run the manual steps below. Paste this and let it install Tempy for you:
 
----
+> Set up the Tempy MCP server for me. Clone https://github.com/davidodejobi/tempy, run `npm install` then `npm run build` inside it, and register the built `dist/index.js` as an MCP server named `tempy` at user scope so every project can use it. When you're done, confirm it's connected and create one test inbox so I know it works.
 
-## Setup
+It clones, builds, wires up the config, and proves the connection in one pass. If you'd rather do it by hand, or you're on Claude Desktop, keep reading.
 
-> Tempy isn't published to npm yet, so the supported path today is **from source**. The `npx` path below will work once it's published.
+## Before you start
 
-### Option A — from source (works today)
+You need Node.js 18 or newer. Check with:
+
+```bash
+node --version
+```
+
+If that prints anything lower than 18, update Node first. Tempy relies on the built-in `fetch`, which older versions don't have.
+
+You also need Claude Code or Claude Desktop, depending on how you want to use it.
+
+## Get it running
+
+The easy way is npx. Nothing to clone, nothing to build, npm fetches Tempy and runs it:
+
+```bash
+npx -y tempy-mcp
+```
+
+You'll see `tempy UI → http://localhost:3000` and it will sit there waiting for a client to connect. Most of the time you won't run this by hand, your MCP client starts it for you (next section). This is just to prove it works.
+
+### Build from source (only if you want to change the code)
+
+If you'd rather hack on Tempy, clone and build it:
 
 ```bash
 git clone https://github.com/davidodejobi/tempy.git
@@ -31,62 +52,41 @@ npm install
 npm run build
 ```
 
-That produces `dist/index.js` (the server). Print its absolute path — you'll need it below:
+That creates `dist/index.js`, which is the server. Print its full path so you can point a client at it:
 
 ```bash
 echo "$(pwd)/dist/index.js"
 ```
 
-### Option B — via npx (once published)
+## Hook it up to Claude
 
-```bash
-npx tempy-mcp
-```
+### Claude Code
 
-No clone or build required; npm fetches and runs it.
+One command. The `--scope user` part makes Tempy available in every project, not just the current one:
 
----
-
-## Connect it to Claude
-
-### Claude Code (CLI)
-
-Register Tempy as an MCP server. `--scope user` makes it available in every project:
-
-**From source:**
-```bash
-claude mcp add tempy --scope user -- node /absolute/path/to/tempy/dist/index.js
-```
-
-**Once published:**
 ```bash
 claude mcp add tempy --scope user -- npx -y tempy-mcp
 ```
 
-Then start a new Claude Code session and run `/mcp` — you should see **tempy · connected** with its tools. To remove it later: `claude mcp remove tempy -s user`.
+Built it from source instead? Point Claude at your file rather than npx:
+
+```bash
+claude mcp add tempy --scope user -- node /paste/your/path/to/dist/index.js
+```
+
+Now open a new Claude Code session and run `/mcp`. You should see tempy in the list, connected, with its tools under it. That's it.
+
+Want it gone later? `claude mcp remove tempy -s user`.
 
 ### Claude Desktop
 
-Edit your config file:
+Open the config file for your system:
 
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
-Add a `tempy` entry under `mcpServers`:
+Add Tempy under `mcpServers`:
 
-**From source:**
-```json
-{
-  "mcpServers": {
-    "tempy": {
-      "command": "node",
-      "args": ["/absolute/path/to/tempy/dist/index.js"]
-    }
-  }
-}
-```
-
-**Once published:**
 ```json
 {
   "mcpServers": {
@@ -98,91 +98,179 @@ Add a `tempy` entry under `mcpServers`:
 }
 ```
 
-Fully quit and reopen Claude Desktop. Tempy's tools appear under the tools (🔌) menu.
+Built it from source? Use `node` and the path to your file instead:
 
----
+```json
+{
+  "mcpServers": {
+    "tempy": {
+      "command": "node",
+      "args": ["/paste/your/path/to/dist/index.js"]
+    }
+  }
+}
+```
+
+Quit Claude Desktop completely, then open it again. Tempy's tools show up in the tools menu.
+
+## Other MCP clients
+
+Tempy talks over stdio, so anything that speaks MCP can run it. The configs below all use npx, so no clone needed. If you built from source, swap `npx -y tempy-mcp` for `node /paste/your/path/to/dist/index.js`. Only the config file and its syntax change.
+
+One thing to know first. Each client starts its own copy of Tempy, and every copy wants the web page on port 3000. The first one to start gets it. If the port is already taken, that copy quietly skips the web page and the tools keep working. To give each client its own dashboard, set a different `TEMPY_PORT` per client, as below.
+
+### opencode
+
+In `~/.config/opencode/opencode.json`, under `mcp`:
+
+```json
+{
+  "mcp": {
+    "tempy": {
+      "type": "local",
+      "command": ["npx", "-y", "tempy-mcp"],
+      "enabled": true,
+      "environment": { "TEMPY_PORT": "3001" }
+    }
+  }
+}
+```
+
+### Gemini CLI
+
+In `~/.gemini/settings.json`, add a top-level `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "tempy": {
+      "command": "npx",
+      "args": ["-y", "tempy-mcp"],
+      "env": { "TEMPY_PORT": "3002" }
+    }
+  }
+}
+```
+
+### Codex CLI
+
+In `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.tempy]
+command = "npx"
+args = ["-y", "tempy-mcp"]
+env = { TEMPY_PORT = "3003" }
+```
+
+### Antigravity
+
+Antigravity adds MCP servers through its settings, using the same shape as Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "tempy": {
+      "command": "npx",
+      "args": ["-y", "tempy-mcp"],
+      "env": { "TEMPY_PORT": "3004" }
+    }
+  }
+}
+```
+
+After editing any of these, restart the client. Most list connected MCP servers under `/mcp`.
 
 ## Using it
 
-Just ask Claude in plain language:
+Talk to Claude like you would a person:
 
-- *"Create a disposable email inbox."* → returns an address you can use
-- *"List my inboxes."*
-- *"Show me the messages for that inbox."* (send a test email to the address first)
-- *"Open the latest message."* → returns subject, sender, and the body
-- *"Delete that message."* / *"Delete that inbox."*
+- "Create a disposable email inbox."
+- "List my inboxes."
+- "Did anything land in that inbox yet?"
+- "Open the latest message."
+- "Delete that inbox."
 
-### End-to-end agent example
+A fuller example. You ask:
 
-> "Sign up on example.com with a disposable email, confirm the verification link, then delete the inbox."
+> "Sign up on example.com with a throwaway email, click the verification link, then delete the inbox."
 
-Claude creates an inbox → uses the address in the signup form → polls `list_messages` until the email arrives → reads it with `get_message` → follows the link → deletes the inbox.
+Claude makes an inbox, drops the address into the form, checks for the email every few seconds, reads it, follows the link, and cleans up after itself.
 
-### Tools reference
+The six tools, plainly:
 
 | Tool | What it does |
 |------|--------------|
-| `create_inbox` | Create a new disposable address and return its id + address |
-| `list_inboxes` | List your inboxes with message and unread counts |
-| `list_messages` | List the messages in an inbox |
-| `get_message` | Read one message (subject, sender, text + HTML body) |
-| `delete_message` | Delete a single message |
-| `delete_inbox` | Delete an inbox (and its mail.tm account) |
+| `create_inbox` | Makes a new address and hands back its id |
+| `list_inboxes` | Shows your inboxes with message and unread counts |
+| `list_messages` | Lists what's in an inbox |
+| `get_message` | Opens one message: subject, sender, and body |
+| `delete_message` | Deletes a single message |
+| `delete_inbox` | Deletes the whole inbox |
 
----
+## The web page
 
-## Web UI
-
-The same process also serves a browser dashboard. With the server running, open:
+The same process serves a dashboard. While the server is running, open:
 
 ```
 http://localhost:3000
 ```
 
-Create addresses, copy them, read mail, and delete inboxes from there. It shares the same storage as the MCP tools, so anything created via Claude shows up in the browser and vice-versa. HTML emails render inside a sandboxed iframe (no script execution); use the HTML/Text toggle to switch views.
+This is your window into the inboxes, and it works two ways:
 
-While Claude is connected, Tempy is already running. To run it standalone:
+- **Watch the AI work.** When Claude makes an inbox and a verification email lands in it, you see it happen. The page refreshes every few seconds, so mail shows up on its own without you reloading. Handy when you're testing a flow and want to confirm the AI actually got the email it claims it got.
+- **Do it yourself.** Make addresses, copy them, read mail, and delete inboxes right from the page, no AI involved. Grab an address, paste it into whatever you're testing by hand, and watch the message arrive.
+
+Either way it's the same data. An inbox Claude makes in chat shows up in the browser, and an address you create in the browser is one Claude can read. HTML emails render inside a locked-down iframe, so nothing in them can run, and there's a toggle to switch between the HTML and plain-text view.
+
+Running Tempy in more than one app at once? Each app gets its own dashboard:
+
+- Claude → `localhost:3000`
+- opencode → `localhost:3001`
+- and so on (full list of ports further down)
+
+Open the page for the app you want to watch. If you only use Tempy in one place, none of this matters.
+
+If Claude is connected, the server is already up. To run it on its own:
 
 ```bash
-npm start          # from source
-# or
-node /absolute/path/to/tempy/dist/index.js
+npx -y tempy-mcp
 ```
 
----
+From source, use `npm start`, or point node straight at the built file:
 
-## Configuration
+```bash
+node /paste/your/path/to/dist/index.js
+```
 
-Set these as environment variables when launching the server:
+## Settings
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `TEMPY_PORT` | `3000` | Port for the web UI |
-| `TEMPY_DATA_DIR` | `~/.tempy` | Directory for the persisted inbox store |
+Pass these as environment variables when you start the server:
 
----
+| Variable | Default | What it does |
+|----------|---------|--------------|
+| `TEMPY_PORT` | `3000` | Port for the web page |
+| `TEMPY_DATA_DIR` | `~/.tempy` | Where the inbox file is saved |
 
-## Where your data lives
+## Where your stuff is saved
 
-Inboxes are saved to `~/.tempy/inboxes.json` (or `$TEMPY_DATA_DIR`) so they survive restarts. The file stores each inbox's mail.tm password in plaintext so Tempy can re-authenticate when a session token expires; it's written with owner-only permissions (`0600`). Delete an inbox to remove it from both mail.tm and the local store, or delete the file to wipe everything.
+Inboxes live in `~/.tempy/inboxes.json` (or wherever `TEMPY_DATA_DIR` points). That's why they survive a restart. The file also holds each inbox's mail.tm password in plain text, because Tempy needs it to log back in when a session token expires. The file is locked to your user account only (`0600` permissions), but it's still plain text sitting on disk.
 
-This is a localhost tool for **disposable** mail — mail.tm addresses are semi-public, so don't use these inboxes for anything sensitive or long-term.
+Delete an inbox and it's gone from both mail.tm and the file. Delete the file and everything's wiped.
 
----
+One thing to be clear about: mail.tm addresses are semi-public, and this is built for disposable mail. Don't run anything private or important through it.
 
-## Development
+## Working on Tempy
 
 ```bash
 npm install
-npm run build      # compile TypeScript + copy the UI into dist/
-npm test           # run the vitest suite
-npm run dev        # tsc --watch
+npm run build      # compile TypeScript, copy the UI into dist/
+npm test           # run the tests
+npm run dev        # rebuild on every change
 ```
 
-After changing code, rebuild and restart your Claude session so it picks up the new build.
-
----
+Change the code, rebuild, then restart your Claude session so it picks up the new build.
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE) for the full text.

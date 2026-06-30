@@ -1,22 +1,19 @@
 import { randomInt } from "node:crypto";
 
-// Curated, lowercase-ascii words for readable email local-parts.
-// A mix of Nigerian (Yoruba / Igbo / Hausa), Greek, and a few general words.
+// Curated, lowercase-ascii words for readable email local-parts:
+// landmarks, objects, and themes (no people's names).
 const WORDS: string[] = [
-  // Yoruba
-  "ayanfe", "ife", "oluwa", "ade", "ayo", "bisi", "funmi", "ireti", "jide",
-  "kemi", "lola", "segun", "titi", "wale", "yemi", "sade", "tunde", "bola",
-  // Igbo
-  "chukwu", "ada", "obi", "emeka", "ngozi", "chidi", "ifeoma", "nneka",
-  "uche", "kelechi", "amaka", "ebuka",
-  // Hausa
-  "sani", "rana", "ruwa", "audu", "bello", "hauwa", "kano", "zaria", "gobe",
-  // Greek
-  "delphi", "kosmos", "zephyr", "lithos", "thalassa", "sophia", "helios",
-  "selene", "kairos", "chronos", "gaia", "hermes", "athena", "apollo",
-  "lyra", "orion", "kalos", "agape",
-  // General
-  "ember", "cobalt", "river", "cedar", "lumen", "vesper", "indigo", "onyx",
+  "zuma", "aso", "olumo", "idanre", "gurara", "yankari", "obudu", "kainji",
+  "mambilla", "lekki", "ogbunike", "agbokim", "niger", "benue", "calabar",
+  "jollof", "suya", "garri", "egusi", "akara", "moimoi", "kola", "adire",
+  "agbada", "ankara", "calabash", "shekere", "gangan", "udu",
+  "parthenon", "acropolis", "olympus", "aegean", "santorini", "meteora",
+  "knossos", "ithaca", "agora", "amphora", "delphi", "olympia", "corinth",
+  "kosmos", "zephyr", "lithos", "thalassa", "kairos", "chronos",
+  "olive", "laurel", "lyre", "mosaic", "marble", "scroll",
+  "lantern", "compass", "anchor", "beacon", "summit", "canyon", "delta",
+  "oasis", "cedar", "cobalt", "indigo", "onyx", "lumen", "vesper", "river",
+  "meadow", "basalt", "quartz", "amber", "copper", "ember", "willow", "ivory",
 ];
 
 // Generates a readable, lowercase-alphanumeric local-part like "sankofadelphi42".

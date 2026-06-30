@@ -105,6 +105,74 @@ Once it's published:
 
 Quit Claude Desktop completely, then open it again. Tempy's tools show up in the tools menu.
 
+## Other MCP clients
+
+Tempy talks over stdio, so anything that speaks MCP can run it. Point each client at the same `dist/index.js`. Only the config file and its syntax change.
+
+One thing to know first. Each client starts its own copy of Tempy, and every copy wants the web page on port 3000. The first one to start gets it. If the port is already taken, that copy quietly skips the web page and the tools keep working. To give each client its own dashboard, set a different `TEMPY_PORT` per client, as below.
+
+### opencode
+
+In `~/.config/opencode/opencode.json`, under `mcp`:
+
+```json
+{
+  "mcp": {
+    "tempy": {
+      "type": "local",
+      "command": ["node", "/paste/your/path/to/dist/index.js"],
+      "enabled": true,
+      "environment": { "TEMPY_PORT": "3001" }
+    }
+  }
+}
+```
+
+### Gemini CLI
+
+In `~/.gemini/settings.json`, add a top-level `mcpServers`:
+
+```json
+{
+  "mcpServers": {
+    "tempy": {
+      "command": "node",
+      "args": ["/paste/your/path/to/dist/index.js"],
+      "env": { "TEMPY_PORT": "3002" }
+    }
+  }
+}
+```
+
+### Codex CLI
+
+In `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.tempy]
+command = "node"
+args = ["/paste/your/path/to/dist/index.js"]
+env = { TEMPY_PORT = "3003" }
+```
+
+### Antigravity
+
+Antigravity adds MCP servers through its settings, using the same shape as Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "tempy": {
+      "command": "node",
+      "args": ["/paste/your/path/to/dist/index.js"],
+      "env": { "TEMPY_PORT": "3004" }
+    }
+  }
+}
+```
+
+After editing any of these, restart the client. Most list connected MCP servers under `/mcp`.
+
 ## Using it
 
 Talk to Claude like you would a person:

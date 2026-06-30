@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import {
   createInbox, listInboxSummaries, getMessages, getMessageDetail,
-  deleteInbox, getQuota, getCredentials,
+  deleteInbox, deleteMessage, getQuota, getCredentials,
 } from "./inbox-service.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -46,6 +46,11 @@ export function createHttpServer() {
 
   app.get("/api/inboxes/:id/credentials", (req, res) => {
     try { res.json(getCredentials(req.params.id)); }
+    catch (e) { fail(res, e); }
+  });
+
+  app.delete("/api/inboxes/:id/messages/:msgId", async (req, res) => {
+    try { await deleteMessage(req.params.id, req.params.msgId); res.status(204).send(); }
     catch (e) { fail(res, e); }
   });
 

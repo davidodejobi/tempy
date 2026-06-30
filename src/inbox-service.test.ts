@@ -5,6 +5,7 @@ vi.mock("./mailtm.js", () => ({
   fetchMessages: vi.fn(),
   fetchMessage: vi.fn(),
   deleteMailTmAccount: vi.fn(),
+  deleteMessage: vi.fn(),
   loginMailTm: vi.fn(),
   fetchAccount: vi.fn(),
   markSeen: vi.fn(),
@@ -22,7 +23,7 @@ import * as mailtm from "./mailtm.js";
 import * as store from "./inbox-store.js";
 import {
   createInbox, listInboxSummaries, getMessages, getMessageDetail,
-  deleteInbox, getQuota, getCredentials,
+  deleteInbox, deleteMessage, getQuota, getCredentials,
 } from "./inbox-service.js";
 
 const inbox = { id: "i1", address: "a@b.com", token: "tok", password: "pw", messages: [] };
@@ -115,6 +116,26 @@ describe("deleteInbox", () => {
   it("throws if inbox not found", async () => {
     vi.mocked(store.getInbox).mockReturnValue(undefined);
     await expect(deleteInbox("bad")).rejects.toThrow("Inbox bad not found");
+  });
+});
+
+describe("deleteMessage", () => {
+  it("deletes from mailtm and updates the cached list", async () => {
+    const withMsgs = { ...inbox, messages: [
+      { id: "m1", subject: "a", from: "x", intro: "", createdAt: "", seen: false },
+      { id: "m2", subject: "b", from: "y", intro: "", createdAt: "", seen: true },
+    ] };
+    vi.mocked(store.getInbox).mockReturnValue(withMsgs);
+    await deleteMessage("i1", "m1");
+    expect(mailtm.deleteMessage).toHaveBeenCalledWith("tok", "m1");
+    expect(store.updateMessages).toHaveBeenCalledWith("i1", [
+      { id: "m2", subject: "b", from: "y", intro: "", createdAt: "", seen: true },
+    ]);
+  });
+
+  it("throws if inbox not found", async () => {
+    vi.mocked(store.getInbox).mockReturnValue(undefined);
+    await expect(deleteMessage("bad", "m1")).rejects.toThrow("Inbox bad not found");
   });
 });
 

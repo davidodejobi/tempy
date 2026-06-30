@@ -7,6 +7,7 @@ vi.mock("./inbox-service.js", () => ({
   getMessages: vi.fn(),
   getMessageDetail: vi.fn(),
   deleteInbox: vi.fn(),
+  deleteMessage: vi.fn(),
   getQuota: vi.fn(),
   getCredentials: vi.fn(),
 }));
@@ -94,6 +95,20 @@ describe("GET /api/inboxes/:id/credentials", () => {
   it("returns 404 for unknown inbox", async () => {
     vi.mocked(service.getCredentials).mockImplementation(() => { throw NOT_FOUND("bad"); });
     const res = await request(createHttpServer()).get("/api/inboxes/bad/credentials");
+    expect(res.status).toBe(404);
+  });
+});
+
+describe("DELETE /api/inboxes/:id/messages/:msgId", () => {
+  it("returns 204", async () => {
+    vi.mocked(service.deleteMessage).mockResolvedValue(undefined);
+    const res = await request(createHttpServer()).delete("/api/inboxes/i1/messages/m1");
+    expect(res.status).toBe(204);
+    expect(service.deleteMessage).toHaveBeenCalledWith("i1", "m1");
+  });
+  it("returns 404 for unknown inbox", async () => {
+    vi.mocked(service.deleteMessage).mockRejectedValue(NOT_FOUND("bad"));
+    const res = await request(createHttpServer()).delete("/api/inboxes/bad/messages/m1");
     expect(res.status).toBe(404);
   });
 });

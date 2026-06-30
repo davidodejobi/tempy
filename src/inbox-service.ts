@@ -1,6 +1,6 @@
 import {
   createMailTmInbox, fetchMessages, fetchMessage, deleteMailTmAccount,
-  loginMailTm, fetchAccount, markSeen,
+  deleteMessage as deleteMailTmMessage, loginMailTm, fetchAccount, markSeen,
 } from "./mailtm.js";
 import { addInbox, getInbox, listInboxes, updateMessages, removeInbox, setToken } from "./inbox-store.js";
 import type { StoredInbox, StoredMessage } from "./inbox-store.js";
@@ -63,6 +63,12 @@ export async function deleteInbox(inboxId: string): Promise<void> {
   const inbox = requireInbox(inboxId);
   await deleteMailTmAccount(inbox.token, inbox.id);
   removeInbox(inboxId);
+}
+
+export async function deleteMessage(inboxId: string, messageId: string): Promise<void> {
+  const inbox = requireInbox(inboxId);
+  await withFreshToken(inbox, (t) => deleteMailTmMessage(t, messageId));
+  updateMessages(inboxId, inbox.messages.filter((m) => m.id !== messageId));
 }
 
 export async function getQuota(inboxId: string): Promise<{ used: number; quota: number }> {

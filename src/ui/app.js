@@ -166,6 +166,13 @@ function renderReader() {
   body.innerHTML = "";
   if (!detail) return;
 
+  const delMsg = document.createElement("button"); delMsg.className = "icon-btn"; delMsg.textContent = "🗑 Delete message";
+  delMsg.onclick = async () => {
+    await api("DELETE", `/api/inboxes/${selectedInboxId}/messages/${selectedMsgId}`);
+    selectedMsgId = null; lastDetail = null;
+    toolbar.innerHTML = ""; body.innerHTML = "";
+    loadMessages(selectedInboxId);
+  };
   const del = document.createElement("button"); del.className = "icon-btn"; del.textContent = "🗑 Delete inbox";
   del.onclick = async () => {
     await api("DELETE", `/api/inboxes/${selectedInboxId}`);
@@ -184,7 +191,7 @@ function renderReader() {
   htmlBtn.onclick = () => { viewMode = "html"; renderReader(); };
   textBtn.onclick = () => { viewMode = "text"; renderReader(); };
   toggle.append(htmlBtn, textBtn);
-  toolbar.append(del, copyAddr, spacer, toggle);
+  toolbar.append(delMsg, del, copyAddr, spacer, toggle);
 
   const meta = document.createElement("div"); meta.className = "reader-meta";
   const avatar = document.createElement("div"); avatar.className = "avatar"; avatar.textContent = initials(detail.from);

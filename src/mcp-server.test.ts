@@ -6,11 +6,12 @@ vi.mock("./inbox-service.js", () => ({
   getMessages: vi.fn(),
   getMessageDetail: vi.fn(),
   deleteInbox: vi.fn(),
+  deleteMessage: vi.fn(),
 }));
 
 import * as service from "./inbox-service.js";
 import {
-  handleCreateInbox, handleListInboxes, handleListMessages, handleGetMessage, handleDeleteInbox,
+  handleCreateInbox, handleListInboxes, handleListMessages, handleGetMessage, handleDeleteInbox, handleDeleteMessage,
 } from "./mcp-server.js";
 
 function parse(result: { content: { text: string }[] }) {
@@ -65,5 +66,14 @@ describe("handleDeleteInbox", () => {
     const result = parse(await handleDeleteInbox({ inboxId: "i1" }));
     expect(result.success).toBe(true);
     expect(service.deleteInbox).toHaveBeenCalledWith("i1");
+  });
+});
+
+describe("handleDeleteMessage", () => {
+  it("returns success", async () => {
+    vi.mocked(service.deleteMessage).mockResolvedValue(undefined);
+    const result = parse(await handleDeleteMessage({ inboxId: "i1", messageId: "m1" }));
+    expect(result.success).toBe(true);
+    expect(service.deleteMessage).toHaveBeenCalledWith("i1", "m1");
   });
 });

@@ -117,6 +117,14 @@ export async function fetchAccount(token: string): Promise<{ used: number; quota
   return { used: data.used, quota: data.quota };
 }
 
+export async function deleteMessage(token: string, messageId: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/messages/${messageId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok && res.status !== 204) throw authError(res.status, "Failed to delete message");
+}
+
 export async function markSeen(token: string, messageId: string): Promise<void> {
   const res = await fetch(`${BASE_URL}/messages/${messageId}`, {
     method: "PATCH",

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createMailTmInbox, fetchMessages, fetchMessage, deleteMailTmAccount, loginMailTm, fetchAccount, markSeen } from "./mailtm.js";
+import { createMailTmInbox, fetchMessages, fetchMessage, deleteMailTmAccount, loginMailTm, fetchAccount, markSeen, deleteMessage } from "./mailtm.js";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
@@ -92,6 +92,23 @@ describe("deleteMailTmAccount", () => {
   it("throws on error status", async () => {
     mockFetch.mockReturnValueOnce(makeResponse({}, 500));
     await expect(deleteMailTmAccount("token-123", "acc-1")).rejects.toThrow("Failed to delete account");
+  });
+});
+
+describe("deleteMessage", () => {
+  it("resolves on 204", async () => {
+    mockFetch.mockReturnValueOnce(Promise.resolve({ ok: true, status: 204, json: () => Promise.resolve({}) }));
+    await expect(deleteMessage("token-123", "m1")).resolves.toBeUndefined();
+  });
+
+  it("throws on error status", async () => {
+    mockFetch.mockReturnValueOnce(makeResponse({}, 500));
+    await expect(deleteMessage("token-123", "m1")).rejects.toThrow("Failed to delete message");
+  });
+
+  it("throws 401 on auth failure", async () => {
+    mockFetch.mockReturnValueOnce(makeResponse({}, 401));
+    await expect(deleteMessage("token-123", "m1")).rejects.toThrow(/^401/);
   });
 });
 

@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
-  createInbox, listInboxSummaries, getMessages, getMessageDetail, deleteInbox,
+  createInbox, listInboxSummaries, getMessages, getMessageDetail, deleteInbox, deleteMessage,
 } from "./inbox-service.js";
 
 type ToolResult = { content: [{ type: "text"; text: string }] };
@@ -31,6 +31,11 @@ export async function handleDeleteInbox({ inboxId }: { inboxId: string }): Promi
   return text({ success: true });
 }
 
+export async function handleDeleteMessage({ inboxId, messageId }: { inboxId: string; messageId: string }): Promise<ToolResult> {
+  await deleteMessage(inboxId, messageId);
+  return text({ success: true });
+}
+
 export function createMcpServer(): McpServer {
   const server = new McpServer({ name: "tempy", version: "0.1.0" });
   server.tool("create_inbox", "Creates a new temporary email inbox", {}, handleCreateInbox);
@@ -52,6 +57,12 @@ export function createMcpServer(): McpServer {
     "Deletes an inbox from mail.tm and removes it from this session",
     { inboxId: z.string().describe("Inbox ID to delete") },
     handleDeleteInbox
+  );
+  server.tool(
+    "delete_message",
+    "Deletes a single message from an inbox",
+    { inboxId: z.string().describe("Inbox ID"), messageId: z.string().describe("Message ID from list_messages") },
+    handleDeleteMessage
   );
   return server;
 }

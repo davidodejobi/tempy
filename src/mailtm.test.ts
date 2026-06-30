@@ -32,10 +32,28 @@ describe("createMailTmInbox", () => {
     await expect(createMailTmInbox()).rejects.toThrow("Failed to fetch domains");
   });
 
-  it("throws if account creation fails", async () => {
+  it("throws if account creation fails with a non-422 error", async () => {
     mockFetch
       .mockReturnValueOnce(makeResponse({ "hydra:member": [{ domain: "mail.tm" }] }))
-      .mockReturnValueOnce(makeResponse({}, 422));
+      .mockReturnValueOnce(makeResponse({}, 500));
+    await expect(createMailTmInbox()).rejects.toThrow("Failed to create account");
+  });
+
+  it("retries with a new address when the address is already taken (422)", async () => {
+    mockFetch
+      .mockReturnValueOnce(makeResponse({ "hydra:member": [{ domain: "mail.tm" }] }))
+      .mockReturnValueOnce(makeResponse({}, 422))
+      .mockReturnValueOnce(makeResponse({ id: "acc-2" }))
+      .mockReturnValueOnce(makeResponse({ token: "jwt-xyz" }));
+    const inbox = await createMailTmInbox();
+    expect(inbox.id).toBe("acc-2");
+    expect(inbox.token).toBe("jwt-xyz");
+  });
+
+  it("throws if the address stays taken after retries", async () => {
+    mockFetch
+      .mockReturnValueOnce(makeResponse({ "hydra:member": [{ domain: "mail.tm" }] }))
+      .mockReturnValue(makeResponse({}, 422));
     await expect(createMailTmInbox()).rejects.toThrow("Failed to create account");
   });
 });

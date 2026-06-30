@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { generateLocalPart } from "./name-generator.js";
 
 const BASE_URL = "https://api.mail.tm";
 
@@ -47,16 +48,26 @@ export async function createMailTmInbox(): Promise<MailTmInbox> {
   const domainsData = await domainsRes.json() as { "hydra:member": { domain: string }[] };
   const domain = domainsData["hydra:member"][0].domain;
 
-  const address = `${randomString(10)}@${domain}`;
   const password = randomString(16);
 
-  const createRes = await fetch(`${BASE_URL}/accounts`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ address, password }),
-  });
-  if (!createRes.ok) throw new Error("Failed to create account");
-  const account = await createRes.json() as { id: string };
+  // Readable addresses are global on mail.tm, so a name may already be taken (422).
+  // Retry with a fresh name a few times before giving up.
+  let address = "";
+  let account: { id: string } | null = null;
+  for (let attempt = 0; attempt < 5 && !account; attempt++) {
+    address = `${generateLocalPart()}@${domain}`;
+    const createRes = await fetch(`${BASE_URL}/accounts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address, password }),
+    });
+    if (createRes.ok) {
+      account = await createRes.json() as { id: string };
+    } else if (createRes.status !== 422) {
+      throw new Error("Failed to create account");
+    }
+  }
+  if (!account) throw new Error("Failed to create account");
 
   const tokenRes = await fetch(`${BASE_URL}/token`, {
     method: "POST",

@@ -30,6 +30,8 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .status-panel .dot { width: 8px; height: 8px; border-radius: 50%; background: #41d18f; display: inline-block; }
 .copy-btn { background: #2a2a34; border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 2px 7px; cursor: pointer; font-size: 0.72rem; }
 .copy-btn:hover { background: #34343f; }
+.delete-address { width: 100%; margin-top: 8px; background: #2a1a1f; color: #ff8a8a; border: 1px solid #5e2a32; border-radius: 6px; padding: 6px; cursor: pointer; font-size: 0.76rem; }
+.delete-address:hover { background: #3a222a; }
 .quota-bar { height: 6px; background: #2a2a34; border-radius: 4px; overflow: hidden; margin-top: 8px; }
 .quota-bar > span { display: block; height: 100%; background: var(--accent); }
 .footer { color: var(--muted); font-size: 0.72rem; text-align: center; padding-top: 12px; }

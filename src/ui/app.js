@@ -32,6 +32,17 @@ async function copy(value) {
   try { await navigator.clipboard.writeText(value); } catch { /* clipboard blocked */ }
 }
 
+async function deleteSelectedInbox() {
+  if (!selectedInboxId) return;
+  await api("DELETE", `/api/inboxes/${selectedInboxId}`);
+  selectedInboxId = null; selectedMsgId = null; selectedAddress = null; lastDetail = null;
+  document.getElementById("message-list").innerHTML = "";
+  document.getElementById("messages-summary").textContent = "";
+  document.getElementById("reader-toolbar").innerHTML = "";
+  document.getElementById("reader-body").innerHTML = "";
+  await loadInboxes();
+}
+
 async function loadInboxes() {
   const inboxes = await api("GET", "/api/inboxes");
   const list = document.getElementById("inbox-list");
@@ -89,7 +100,12 @@ function renderStatus() {
   };
   pwRow.append(pk, pv, pBtn);
 
-  panel.append(statusRow, addrRow, pwRow);
+  const delRow = document.createElement("div"); delRow.className = "row";
+  const delBtn = document.createElement("button"); delBtn.className = "delete-address"; delBtn.textContent = "🗑 Delete address";
+  delBtn.onclick = deleteSelectedInbox;
+  delRow.append(delBtn);
+
+  panel.append(statusRow, addrRow, pwRow, delRow);
   loadQuota();
 }
 
@@ -174,14 +190,7 @@ function renderReader() {
     loadMessages(selectedInboxId);
   };
   const del = document.createElement("button"); del.className = "icon-btn"; del.textContent = "🗑 Delete inbox";
-  del.onclick = async () => {
-    await api("DELETE", `/api/inboxes/${selectedInboxId}`);
-    selectedInboxId = null; selectedMsgId = null; selectedAddress = null; lastDetail = null;
-    document.getElementById("message-list").innerHTML = "";
-    document.getElementById("messages-summary").textContent = "";
-    toolbar.innerHTML = ""; body.innerHTML = "";
-    loadInboxes();
-  };
+  del.onclick = deleteSelectedInbox;
   const copyAddr = document.createElement("button"); copyAddr.className = "icon-btn"; copyAddr.textContent = "Copy address";
   copyAddr.onclick = () => copy(selectedAddress || "");
   const spacer = document.createElement("div"); spacer.className = "spacer";

@@ -3,21 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tempy</title>
+  <title>Tempy</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <span class="logo">tempy</span>
-    <button id="btn-new">+ New Inbox</button>
-  </header>
-  <main>
-    <aside id="inbox-list"></aside>
-    <section id="message-panel">
-      <ul id="message-list"></ul>
-      <article id="message-body"></article>
+  <div id="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-logo">T</span>
+        <span class="brand-text">
+          <span class="brand-name">Tempy</span>
+          <span class="brand-tag">disposable inbox</span>
+        </span>
+      </div>
+      <button id="btn-new" class="new-address">New Address <span class="plus">+</span></button>
+      <div class="section-label">Active Accounts</div>
+      <div id="inbox-list" class="inbox-list"></div>
+      <div id="status-panel" class="status-panel"></div>
+      <div id="quota-panel" class="quota-panel"></div>
+      <div class="footer">Powered by Mail.tm</div>
+    </aside>
+
+    <section class="messages">
+      <header class="messages-header">
+        <div class="messages-title">Inbox</div>
+        <div id="messages-summary" class="messages-summary"></div>
+      </header>
+      <ul id="message-list" class="message-list"></ul>
     </section>
-  </main>
+
+    <section class="reader">
+      <header id="reader-toolbar" class="reader-toolbar"></header>
+      <div id="reader-body" class="reader-body"></div>
+    </section>
+  </div>
   <script src="app.js"></script>
 </body>
 </html>

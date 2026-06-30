@@ -22,7 +22,12 @@ async function loadInboxes() {
   inboxes.forEach((inbox) => {
     const el = document.createElement("div");
     el.className = "inbox-item" + (inbox.id === selectedInboxId ? " active" : "");
-    el.innerHTML = `<span>${inbox.address}</span><span class="count">${inbox.messageCount}</span>`;
+    const address = document.createElement("span");
+    address.textContent = inbox.address;
+    const count = document.createElement("span");
+    count.className = "count";
+    count.textContent = inbox.messageCount;
+    el.append(address, count);
     el.onclick = () => selectInbox(inbox.id);
     list.appendChild(el);
   });
@@ -47,7 +52,13 @@ async function loadMessages(inboxId) {
   messages.forEach((msg) => {
     const li = document.createElement("li");
     li.className = "msg-item" + (msg.id === selectedMsgId ? " active" : "");
-    li.innerHTML = `<div class="subject">${msg.subject || "(no subject)"}</div><div class="from">${msg.from}</div>`;
+    const subject = document.createElement("div");
+    subject.className = "subject";
+    subject.textContent = msg.subject || "(no subject)";
+    const from = document.createElement("div");
+    from.className = "from";
+    from.textContent = msg.from;
+    li.append(subject, from);
     li.onclick = () => loadMessageBody(inboxId, msg.id);
     list.appendChild(li);
   });
@@ -56,11 +67,16 @@ async function loadMessages(inboxId) {
 async function loadMessageBody(inboxId, msgId) {
   selectedMsgId = msgId;
   const detail = await api("GET", `/api/inboxes/${inboxId}/messages/${msgId}`);
-  document.getElementById("message-body").innerHTML = `
-    <h2>${detail.subject || "(no subject)"}</h2>
-    <div class="meta">From: ${detail.from}</div>
-    <pre>${detail.text || "(no plain text body)"}</pre>
-  `;
+  const body = document.getElementById("message-body");
+  body.innerHTML = "";
+  const heading = document.createElement("h2");
+  heading.textContent = detail.subject || "(no subject)";
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = `From: ${detail.from}`;
+  const pre = document.createElement("pre");
+  pre.textContent = detail.text || "(no plain text body)";
+  body.append(heading, meta, pre);
 }
 
 document.getElementById("btn-new").onclick = async () => {

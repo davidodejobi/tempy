@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 const BASE_URL = "https://api.mail.tm";
 
 export interface MailTmInbox {
@@ -20,8 +22,18 @@ export interface MailTmMessageDetail extends MailTmMessage {
   html: string[];
 }
 
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789"; // 36 chars, email-local-part safe
+
+// CSPRNG-backed random string. Uses rejection sampling to avoid modulo bias.
 function randomString(length: number): string {
-  return Math.random().toString(36).substring(2, 2 + length).padEnd(length, "a");
+  const limit = Math.floor(256 / ALPHABET.length) * ALPHABET.length; // 252
+  let out = "";
+  while (out.length < length) {
+    for (const byte of randomBytes(length - out.length)) {
+      if (byte < limit) out += ALPHABET[byte % ALPHABET.length];
+    }
+  }
+  return out;
 }
 
 export async function createMailTmInbox(): Promise<MailTmInbox> {

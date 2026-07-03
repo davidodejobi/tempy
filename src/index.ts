@@ -25,6 +25,6 @@ server.on("error", (err: NodeJS.ErrnoException) => {
   }
 });
 
-const mcpServer = createMcpServer();
+const mcpServer = createMcpServer({ uiUrl: `http://localhost:${PORT}` });
 const transport = new StdioServerTransport();
 await mcpServer.connect(transport);

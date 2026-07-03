@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   createInbox, listInboxSummaries, getMessages, getMessageDetail, deleteInbox, deleteMessage,
 } from "./inbox-service.js";
+import { openInBrowser } from "./browser.js";
 
 type ToolResult = { content: [{ type: "text"; text: string }] };
 
@@ -36,7 +37,25 @@ export async function handleDeleteMessage({ inboxId, messageId }: { inboxId: str
   return text({ success: true });
 }
 
-export function createMcpServer(): McpServer {
+// Builds the open_dashboard handler. The opener is injected so tests can run
+// without actually launching a browser.
+export function makeOpenDashboardHandler(
+  uiUrl: string,
+  open: (url: string) => boolean = openInBrowser
+) {
+  return async ({ inboxId, messageId }: { inboxId?: string; messageId?: string }): Promise<ToolResult> => {
+    const params = new URLSearchParams();
+    if (inboxId) params.set("inbox", inboxId);
+    // A message only makes sense within its inbox, so ignore it without one.
+    if (inboxId && messageId) params.set("msg", messageId);
+    const query = params.toString();
+    const url = query ? `${uiUrl}/?${query}` : uiUrl;
+    const opened = open(url);
+    return text({ url, opened });
+  };
+}
+
+export function createMcpServer({ uiUrl = "http://localhost:3000" }: { uiUrl?: string } = {}): McpServer {
   const server = new McpServer({ name: "tempy", version: "0.1.0" });
   server.tool("create_inbox", "Creates a new temporary email inbox", {}, handleCreateInbox);
   server.tool("list_inboxes", "Lists all active inboxes in this session", {}, handleListInboxes);
@@ -63,6 +82,15 @@ export function createMcpServer(): McpServer {
     "Deletes a single message from an inbox",
     { inboxId: z.string().describe("Inbox ID"), messageId: z.string().describe("Message ID from list_messages") },
     handleDeleteMessage
+  );
+  server.tool(
+    "open_dashboard",
+    "Opens the Tempy web dashboard in the user's browser so they can visually see inboxes and messages. Use when the user asks to see the emails, view the inbox visually, or open the dashboard. With no arguments it shows the whole dashboard. Pass inboxId to open focused on a specific inbox, and messageId (together with its inboxId) to open that specific message.",
+    {
+      inboxId: z.string().optional().describe("Optional inbox ID to open the dashboard focused on"),
+      messageId: z.string().optional().describe("Optional message ID to open directly; requires inboxId"),
+    },
+    makeOpenDashboardHandler(uiUrl)
   );
   return server;
 }

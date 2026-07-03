@@ -12,6 +12,7 @@ vi.mock("./inbox-service.js", () => ({
 import * as service from "./inbox-service.js";
 import {
   handleCreateInbox, handleListInboxes, handleListMessages, handleGetMessage, handleDeleteInbox, handleDeleteMessage,
+  makeOpenDashboardHandler,
 } from "./mcp-server.js";
 
 function parse(result: { content: { text: string }[] }) {
@@ -75,5 +76,44 @@ describe("handleDeleteMessage", () => {
     const result = parse(await handleDeleteMessage({ inboxId: "i1", messageId: "m1" }));
     expect(result.success).toBe(true);
     expect(service.deleteMessage).toHaveBeenCalledWith("i1", "m1");
+  });
+});
+
+describe("makeOpenDashboardHandler", () => {
+  it("opens the base URL when no inbox is given", async () => {
+    const open = vi.fn().mockReturnValue(true);
+    const handler = makeOpenDashboardHandler("http://localhost:3000", open);
+    const result = parse(await handler({}));
+    expect(open).toHaveBeenCalledWith("http://localhost:3000");
+    expect(result).toEqual({ url: "http://localhost:3000", opened: true });
+  });
+
+  it("deep-links to a specific inbox with an encoded id", async () => {
+    const open = vi.fn().mockReturnValue(true);
+    const handler = makeOpenDashboardHandler("http://localhost:3000", open);
+    const result = parse(await handler({ inboxId: "a b/c" }));
+    expect(result.url).toBe("http://localhost:3000/?inbox=a+b%2Fc");
+    expect(open).toHaveBeenCalledWith("http://localhost:3000/?inbox=a+b%2Fc");
+  });
+
+  it("deep-links to a specific message within its inbox", async () => {
+    const open = vi.fn().mockReturnValue(true);
+    const handler = makeOpenDashboardHandler("http://localhost:3000", open);
+    const result = parse(await handler({ inboxId: "i1", messageId: "m1" }));
+    expect(result.url).toBe("http://localhost:3000/?inbox=i1&msg=m1");
+  });
+
+  it("ignores a message id when no inbox id is given", async () => {
+    const open = vi.fn().mockReturnValue(true);
+    const handler = makeOpenDashboardHandler("http://localhost:3000", open);
+    const result = parse(await handler({ messageId: "m1" }));
+    expect(result.url).toBe("http://localhost:3000");
+  });
+
+  it("still returns the URL when the browser cannot open", async () => {
+    const open = vi.fn().mockReturnValue(false);
+    const handler = makeOpenDashboardHandler("http://localhost:3001", open);
+    const result = parse(await handler({}));
+    expect(result).toEqual({ url: "http://localhost:3001", opened: false });
   });
 });

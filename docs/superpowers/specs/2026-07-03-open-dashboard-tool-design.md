@@ -29,8 +29,10 @@ Add one MCP tool, `open_dashboard`, plus the plumbing to launch the OS browser.
 2. **`src/mcp-server.ts`** — new `open_dashboard` tool.
    - `makeOpenDashboardHandler(uiUrl, open = openInBrowser)` returns the handler,
      with the opener injectable for tests.
-   - Optional `inboxId` param. URL is `uiUrl` alone, or
-     `${uiUrl}/?inbox=${encodeURIComponent(inboxId)}` when an id is passed.
+   - Optional `inboxId` and `messageId` params, built into a query string:
+     no args → `uiUrl` (whole dashboard); `inboxId` → `?inbox=<id>`;
+     `inboxId` + `messageId` → `?inbox=<id>&msg=<msgId>`. A `messageId` without
+     an `inboxId` is ignored, since a message only resolves within its inbox.
    - Calls the opener and returns `{ url, opened }` as JSON text, so the model
      always has a clickable link even when auto-open fails (remote/headless).
    - `createMcpServer` gains an optional `{ uiUrl }` option (default
@@ -43,9 +45,9 @@ Add one MCP tool, `open_dashboard`, plus the plumbing to launch the OS browser.
    the port or another running Tempy already holds it (they share the store),
    so the tool works even when this instance skipped the UI on EADDRINUSE.
 
-4. **`src/ui/app.js`** — on initial load, read `?inbox=` from the query string;
-   if present, select that inbox once the inbox list has loaded so the
-   deep-link lands directly on it.
+4. **`src/ui/app.js`** — on initial load, read `?inbox=` (and optional `msg=`)
+   from the query string; select that inbox once the list has loaded, then open
+   the message if one was named, so the deep-link lands directly on it.
 
 ### Data flow
 

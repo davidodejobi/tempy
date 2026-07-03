@@ -6,7 +6,7 @@ Use it when you want an email address you don't care about. Signing up for somet
 
 What you get:
 
-- Six tools Claude can call: make an inbox, list inboxes, read messages, delete a message, delete an inbox.
+- Seven tools Claude can call: make an inbox, list inboxes, read messages, delete a message, delete an inbox, and open the web dashboard in your browser.
 - A web dashboard at `http://localhost:3000` that looks like a normal mail client.
 - Inboxes that survive a restart. They're saved to a file in your home folder.
 - Readable addresses like `lekki-anchor42@...`, not random junk.
@@ -189,6 +189,8 @@ Talk to Claude like you would a person:
 - "List my inboxes."
 - "Did anything land in that inbox yet?"
 - "Open the latest message."
+- "Show me the dashboard." (opens the web page in your browser)
+- "Open that inbox on screen so I can watch it."
 - "Delete that inbox."
 
 A fuller example. You ask:
@@ -207,6 +209,7 @@ The six tools, plainly:
 | `get_message` | Opens one message: subject, sender, and body |
 | `delete_message` | Deletes a single message |
 | `delete_inbox` | Deletes the whole inbox |
+| `open_dashboard` | Opens the web dashboard in your browser, optionally jumping to a specific inbox or message |
 
 ## The web page
 

@@ -228,7 +228,22 @@ document.getElementById("btn-new").onclick = async () => {
   await loadInboxes();
 };
 
-loadInboxes();
+// Deep-link support: `?inbox=<id>` (from the open_dashboard tool) opens the
+// dashboard focused on that inbox, and `&msg=<id>` opens that message directly.
+async function init() {
+  await loadInboxes();
+  const params = new URLSearchParams(location.search);
+  const wantedInbox = params.get("inbox");
+  const wantedMsg = params.get("msg");
+  if (!wantedInbox) return;
+  const inboxes = await api("GET", "/api/inboxes");
+  const match = inboxes.find((i) => i.id === wantedInbox);
+  if (!match) return;
+  await selectInbox(match.id, match.address);
+  if (wantedMsg) await loadMessageBody(match.id, wantedMsg);
+}
+
+init();
 setInterval(() => {
   loadInboxes();
   if (selectedInboxId) loadMessages(selectedInboxId);

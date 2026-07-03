@@ -1,12 +1,19 @@
 {
   "name": "tempy-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for disposable email inboxes via mail.tm",
   "type": "module",
-  "bin": { "tempy": "dist/index.js", "tempy-mcp": "dist/index.js" },
+  "bin": {
+    "tempy": "dist/index.js",
+    "tempy-mcp": "dist/index.js"
+  },
   "main": "dist/index.js",
-  "files": ["dist"],
-  "engines": { "node": ">=18" },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc && npm run copy-ui",
     "copy-ui": "rm -rf dist/ui && cp -r src/ui dist/ui",
@@ -16,10 +23,21 @@
     "dev": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["mcp", "email", "disposable", "testing", "mail.tm"],
-  "repository": { "type": "git", "url": "git+https://github.com/davidodejobi/tempy.git" },
+  "keywords": [
+    "mcp",
+    "email",
+    "disposable",
+    "testing",
+    "mail.tm"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidodejobi/tempy.git"
+  },
   "homepage": "https://github.com/davidodejobi/tempy#readme",
-  "bugs": { "url": "https://github.com/davidodejobi/tempy/issues" },
+  "bugs": {
+    "url": "https://github.com/davidodejobi/tempy/issues"
+  },
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

@@ -223,6 +223,65 @@ function renderReader() {
   }
 }
 
+function setupResizableColumns() {
+  const root = document.documentElement;
+  const MIN_SIDEBAR = 200, MAX_SIDEBAR = 440;
+  const MIN_MESSAGES = 220, MAX_MESSAGES = 560;
+
+  const saved = JSON.parse(localStorage.getItem("tempy-column-widths") || "{}");
+  if (saved.sidebar) root.style.setProperty("--sidebar-w", `${saved.sidebar}px`);
+  if (saved.messages) root.style.setProperty("--messages-w", `${saved.messages}px`);
+
+  function persist() {
+    const sidebar = parseInt(getComputedStyle(root).getPropertyValue("--sidebar-w"), 10);
+    const messages = parseInt(getComputedStyle(root).getPropertyValue("--messages-w"), 10);
+    localStorage.setItem("tempy-column-widths", JSON.stringify({ sidebar, messages }));
+  }
+
+  function makeDraggable(divider, varName, min, max, getStartX) {
+    divider.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startWidth = getStartX();
+      divider.classList.add("dragging");
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+
+      function onMove(ev) {
+        const next = Math.min(max, Math.max(min, startWidth + (ev.clientX - startX)));
+        root.style.setProperty(varName, `${next}px`);
+      }
+      function onUp() {
+        divider.classList.remove("dragging");
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+        persist();
+      }
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    });
+  }
+
+  makeDraggable(
+    document.getElementById("divider-1"),
+    "--sidebar-w",
+    MIN_SIDEBAR,
+    MAX_SIDEBAR,
+    () => parseInt(getComputedStyle(root).getPropertyValue("--sidebar-w"), 10)
+  );
+  makeDraggable(
+    document.getElementById("divider-2"),
+    "--messages-w",
+    MIN_MESSAGES,
+    MAX_MESSAGES,
+    () => parseInt(getComputedStyle(root).getPropertyValue("--messages-w"), 10)
+  );
+}
+
+setupResizableColumns();
+
 document.getElementById("btn-new").onclick = async () => {
   await api("POST", "/api/inboxes");
   await loadInboxes();

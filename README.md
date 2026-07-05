@@ -226,6 +226,8 @@ This is your window into the inboxes, and it works two ways:
 
 Either way it's the same data. An inbox Claude makes in chat shows up in the browser, and an address you create in the browser is one Claude can read. HTML emails render inside a locked-down iframe, so nothing in them can run, and there's a toggle to switch between the HTML and plain-text view.
 
+The three columns (accounts, messages, reader) are resizable — drag the thin divider between them, for example to give a long email more room. Sizes are remembered between visits.
+
 Running Tempy in more than one app at once? Each app gets its own dashboard:
 
 - Claude → `localhost:3000`

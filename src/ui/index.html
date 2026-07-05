@@ -4,14 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tempy</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app">
     <aside class="sidebar">
       <div class="brand">
-        <span class="brand-logo">T</span>
+        <img class="brand-logo" src="logo.webp" alt="Tempy" />
         <span class="brand-text">
           <span class="brand-name">Tempy</span>
           <span class="brand-tag">disposable inbox</span>
@@ -25,6 +26,8 @@
       <div class="footer">Powered by Mail.tm</div>
     </aside>
 
+    <div id="divider-1" class="divider"></div>
+
     <section class="messages">
       <header class="messages-header">
         <div class="messages-title">Inbox</div>
@@ -32,6 +35,8 @@
       </header>
       <ul id="message-list" class="message-list"></ul>
     </section>
+
+    <div id="divider-2" class="divider"></div>
 
     <section class="reader">
       <header id="reader-toolbar" class="reader-toolbar"></header>

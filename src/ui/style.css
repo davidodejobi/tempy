@@ -7,14 +7,18 @@ body {
   font-family: system-ui, -apple-system, sans-serif; color: var(--text); height: 100vh;
   background: radial-gradient(900px 500px at -5% -10%, rgba(20, 184, 166, 0.10), transparent 60%), var(--bg);
 }
-#app { display: grid; grid-template-columns: 260px 320px 1fr; height: 100vh; }
+:root { --sidebar-w: 260px; --messages-w: 320px; }
+#app { display: grid; grid-template-columns: var(--sidebar-w) 6px var(--messages-w) 6px 1fr; height: 100vh; }
+
+.divider { position: relative; cursor: col-resize; background: transparent; }
+.divider::after { content: ""; position: absolute; top: 0; bottom: 0; left: 2px; width: 2px; background: var(--line); }
+.divider:hover::after, .divider.dragging::after { background: var(--accent); }
 
 .sidebar { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 14px; overflow: hidden; }
 .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
 .brand-logo {
   width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
-  display: grid; place-items: center; font-weight: 800; font-size: 1rem; color: #07100f;
-  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  object-fit: contain; background: #fff;
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .brand-name { font-size: 1.1rem; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
